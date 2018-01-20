@@ -36,11 +36,11 @@ def parse_phrase(phrase):
         print('new_phrase')
         result = query_noun_phrase_chunker(phrase)
         print(len(phrase), len(result))
-        for word, lemma, pos, case in result:
+        for word, lemma, pos, case, posTag in result:
             word = word.strip()
             if not word:
                 continue
-            entry = WordStructure(text=word, lemma=lemma, pos=pos, case=case)
+            entry = WordStructure(text=word, lemma=lemma, pos=pos, case=case, posTag=posTag)
             entry.save()
         PhraseCache(phrase=phrase, md5=_md5).save()
     phrase = [item.strip() for item in phrase.split() if item]
@@ -62,10 +62,10 @@ def parse_phrase(phrase):
                 i += 1
                 continue
             else:
-                result_data.append((word_struct.id, word_struct.text, word_struct.lemma, word_struct.pos))
+                result_data.append((word_struct.id, word_struct.text, word_struct.lemma, word_struct.pos, word_struct.posTag))
                 i += 2
         else:
-            result_data.append((word_struct.id, word_struct.text, word_struct.lemma, word_struct.pos))
+            result_data.append((word_struct.id, word_struct.text, word_struct.lemma, word_struct.pos, word_struct.posTag))
             i += 1
     return result_data
         
@@ -76,6 +76,7 @@ def query_noun_phrase_chunker(phrase):
     info = re.findall(r"<span onclick='selectWord\(this,\s*(\{.+\}?)\)'.+?>(.+?)<\/span>", data)
     return_data = []
     for meta, word in info:
+
         meta = meta.lower()
         word = unescape(word.lower())
         meta = re.sub('([{,: ])(\w+)([},:])','\\1\"\\2\"\\3',meta)
@@ -84,15 +85,16 @@ def query_noun_phrase_chunker(phrase):
         lemma = meta.get('lemma', '')
         pos = meta.get('pos', '')
         case = meta.get('case', '')
-        return_data.append((word, lemma, pos, case))
+        posTag = meta.get('msd', '')
+        return_data.append((word, lemma, pos, case, posTag))
     return return_data
 
 def process(phrases):
     top = etree.Element('text')
     for phrase in phrases:
         result = parse_phrase(phrase)
-        for token, word, lemma, pos in result:
-            child = etree.SubElement(top, 'token', {'id': str(token), 'lemma': lemma, 'pos': pos})
+        for token, word, lemma, pos, posTag in result:
+            child = etree.SubElement(top, 'token', {'id': str(token), 'lemma': lemma, 'pos': pos, 'posTag': posTag})
             child.text = word
     return top
     

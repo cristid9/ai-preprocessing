@@ -13,6 +13,7 @@ class WordStructure(BaseModel):
     text = peewee.CharField(max_length=128)
     pos = peewee.CharField(max_length=32)
     lemma = peewee.CharField(max_length=128)
+    case = peewee.CharField(max_length=128)
 
 class PhraseCache(BaseModel):
     phrase = peewee.CharField(max_length=1024)

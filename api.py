@@ -36,11 +36,11 @@ def parse_phrase(phrase):
         print('new_phrase')
         result = query_noun_phrase_chunker(phrase)
         print(len(phrase), len(result))
-        for word, lemma, pos in result:
+        for word, lemma, pos, case in result:
             word = word.strip()
             if not word:
                 continue
-            entry = WordStructure(text=word, lemma=lemma, pos=pos)
+            entry = WordStructure(text=word, lemma=lemma, pos=pos, case=case)
             entry.save()
         PhraseCache(phrase=phrase, md5=_md5).save()
     phrase = [item.strip() for item in phrase.split() if item]
@@ -67,8 +67,7 @@ def parse_phrase(phrase):
         else:
             result_data.append((word_struct.id, word_struct.text, word_struct.lemma, word_struct.pos))
             i += 1
-        
-    return result_data	
+    return result_data
         
 def query_noun_phrase_chunker(phrase):
     request = requests.post('http://nlptools.info.uaic.ro/WebNpChunkerRo/NpChunkerRoServlet',
@@ -84,7 +83,8 @@ def query_noun_phrase_chunker(phrase):
         # meta = yaml.load(meta)
         lemma = meta.get('lemma', '')
         pos = meta.get('pos', '')
-        return_data.append((word, lemma, pos))
+        case = meta.get('case', '')
+        return_data.append((word, lemma, pos, case))
     return return_data
 
 def process(phrases):
